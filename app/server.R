@@ -1,0 +1,86 @@
+#server.R
+
+library(shiny)
+library(shinyjs)
+library(dplyr)
+
+perichaena_table <- read.csv("perichaena_tbl.csv")
+
+inputMyx <- function(vector, input, y = 2, facultative = FALSE) {
+  l_vector <- vector %in% input
+  n_vector <- sum(l_vector) & !l_vector
+  if (facultative) {
+    n_vector <- n_vector - !sum(l_vector)
+  }
+  n_vector <- y * n_vector
+  names(n_vector) <- vector
+  return(n_vector)
+}
+
+shinyServer(function(input, output, session) {
+
+  output$value <- renderText({
+    vSporophoreType <- inputMyx(c("sessile", "stalked", "plasmodiocarps"), input$checkSporophoreType)
+    vSporangiumShape <- inputMyx(c("flat", "pillow", "spherical", "deep_bottom"), input$checkSporangiumShape)
+    vStalkSporangiaRatio <- inputMyx(c("more", "less"), input$checkStalkSporangiaRatio, facultative = T)
+    vStalkColour <- inputMyx(c("dark", "light"), input$checkStalkColour, facultative = T)
+    vPeridiumLayers <- inputMyx(c("single", "double"), input$checkPeridiumLayers)
+    vPeridiumThickness <- inputMyx(c("thick", "thin"), input$checkPeridiumThickness)
+    vPeridiumSurface <- inputMyx(c("granular", "absent"), input$checkPeridiumSurface, facultative = T)
+    vPeridiumDehiscence <- inputMyx(c("circle", "plates", "irregular"), input$checkPeridiumDehiscence)
+    vHypothallus <- inputMyx(c("inconspicuous", "conspicuous"), input$checkHypothallus)
+    vHypothallusColour <- inputMyx(c("transparent", "light", "dark"), input$checkHypothallusColour, facultative = T)
+    vCapillitum <- inputMyx(c("abundant", "scanty", "absent"), input$checkCapillitum)
+    vCapillitumOrnamentation <- inputMyx(c("warted", "spiny", "net", "irregular"), input$checkCapillitumOrnamentation, facultative = T)
+    vSporeShape <- inputMyx(c("spherical", "polygonal"), input$checkSporeShape)
+    vSporeAggregation <- inputMyx(c("free", "clusters"), input$checkSporeAggregation)
+    vSporeSurface <- inputMyx(c("small_warted", "large_warted", "small_warted_with_large", "spiny", "reticulate"), input$checkSporeSurface)
+
+    observe({
+      # Если выбран сидячий спорангий, то инактивируются признаки ножки
+      if (vSporophoreType["sessile"] == 0 & sum(vSporophoreType) == 4) {
+        shinyjs::disable("rangeStalk")
+        shinyjs::disable("checkStalkSporangiaRatio")
+        shinyjs::disable("checkStalkColour")
+      } else {
+        shinyjs::enable("rangeStalk")
+        shinyjs::enable("checkStalkSporangiaRatio")
+        shinyjs::enable("checkStalkColour")
+      }
+      # Если выбрано отсутствие капиллиция, то инактивируются признаки капиллиция
+      if (vCapillitum["absent"] == 0 & sum(vCapillitum) == 4) {
+        shinyjs::disable("checkCapillitumOrnamentation")
+        shinyjs::disable("rangeCapillitumDiameter")
+      } else {
+        shinyjs::enable("checkCapillitumOrnamentation")
+        shinyjs::enable("rangeCapillitumDiameter")
+      }
+    })
+
+    filtered_perichaena_table <- perichaena_table %>%
+    filter(
+      ts_ses > vSporophoreType["sessile"] | ts_st > vSporophoreType["stalked"] | ts_pl > vSporophoreType["plasmodiocarps"],
+      sh_flat > vSporangiumShape["flat"] | sh_pil > vSporangiumShape["pillow"] | sh_sph > vSporangiumShape["spherical"] | sh_dp > vSporangiumShape["deep_bottom"],
+      ds_lmin <= input$rangeSporangiumDiameter[2] & ds_lmax >= input$rangeSporangiumDiameter[1],
+      ls_min <= input$rangeStalk[2] & ls_max >= input$rangeStalk[1],
+      ls_more > vStalkSporangiaRatio["more"] | ls_less > vStalkSporangiaRatio["less"],
+      cs_d > vStalkColour["dark"] | cs_l > vStalkColour["light"],
+      hy_in > vHypothallus["inconspicuous"] | hy_co > vHypothallus["conspicuous"],
+      hc_t > vHypothallusColour["transparent"] | hc_l > vHypothallusColour["light"] | hc_d > vHypothallusColour["dark"],
+      p_1 > vPeridiumLayers["single"] | p_2 > vPeridiumLayers["double"],
+      pt_thn > vPeridiumThickness["thick"] | pt_tck > vPeridiumThickness["thin"],
+      ps_gr > vPeridiumSurface["granular"] | ps_ab > vPeridiumSurface["absent"],
+      pd_cir > vPeridiumDehiscence["circle"] | pd_pl > vPeridiumDehiscence["plates"] | pd_ir > vPeridiumDehiscence["irregular"],
+      sd_lmin <= input$rangeSporeDiameter[2] & sd_lmax >= input$rangeSporeDiameter[1],
+      ss_cir > vSporeShape["spherical"] | ss_pol > vSporeShape["polygonal"],
+      sa_fr > vSporeAggregation["free"] | sa_cl > vSporeAggregation["clusters"],
+      so_smw > vSporeSurface["small_warted"] | so_lw > vSporeSurface["large_warted"] | so_slw > vSporeSurface["small_warted_with_large"] | so_sp > vSporeSurface["spiny"] | so_ret > vSporeSurface["reticulate"],
+      ca_w > vCapillitum["abundant"] | ca_sc > vCapillitum["scanty"] | ca_ab > vCapillitum["absent"],
+      cd_lmin <= input$rangeCapillitumDiameter[2] & cd_lmax >= input$rangeCapillitumDiameter[1],
+      co_sw > vCapillitumOrnamentation["warted"] | co_ls > vCapillitumOrnamentation["spiny"] | co_ret > vCapillitumOrnamentation["net"] | co_ir > vCapillitumOrnamentation["irregular"])
+
+    paste0("<i>", filtered_perichaena_table$sp, "</i>", collapse = "<br>")
+
+  })
+
+})
