@@ -37,8 +37,8 @@ shinyServer(function(input, output, session) {
     vSporeSurface <- inputMyx(c("small_warted", "large_warted", "small_warted_with_large", "spiny", "reticulate"), input$checkSporeSurface)
 
     observe({
-      # Если выбран сидячий спорангий, то инактивируются признаки ножки
-      if (vSporophoreType["sessile"] == 0 & sum(vSporophoreType) == 4) {
+      # Если не выбран спорангий на ножке, то инактивируются признаки ножки
+      if (vSporophoreType["stalked"] > 0) {
         shinyjs::disable("rangeStalk")
         shinyjs::disable("checkStalkSporangiaRatio")
         shinyjs::disable("checkStalkColour")
@@ -46,6 +46,14 @@ shinyServer(function(input, output, session) {
         shinyjs::enable("rangeStalk")
         shinyjs::enable("checkStalkSporangiaRatio")
         shinyjs::enable("checkStalkColour")
+      }
+      # Если выбран плазмодиокарп, то инактивируются форма спорангия
+      if (vSporophoreType["plasmodiocarps"] == 0 & sum(vSporophoreType) == 4) {
+        shinyjs::disable("checkSporangiumShape")
+        shinyjs::disable("rangeSporangiumDiameter")
+      } else {
+        shinyjs::enable("checkSporangiumShape")
+        shinyjs::enable("angeSporangiumDiameter")
       }
       # Если выбрано отсутствие капиллиция, то инактивируются признаки капиллиция
       if (vCapillitum["absent"] == 0 & sum(vCapillitum) == 4) {
