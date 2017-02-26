@@ -163,11 +163,11 @@ ui <- function(req) {
           checkboxGroupInput("checkSporeSurface",
             label = "Орнаментация поверхности спор",
             choices = c(
-              "Мелкобородавчатые" = "small_warted",
-              "Крупнобородавчатые" = "large_warted",
-              "Мелкобородавчатые с несколькими выделяющимися более крупными бородавками" = "small_warted_with_large",
-              "Шиповатые" = "spiny",
-              "Сетчатые" = "reticulate"))
+              "Мелкобородавчатая" = "small_warted",
+              "Крупнобородавчатая" = "large_warted",
+              "Мелкобородавчатая с несколькими выделяющимися более крупными бородавками" = "small_warted_with_large",
+              "Шиповатая" = "spiny",
+              "Сетчатая" = "reticulate"))
       ),
 
       column(3,
@@ -224,7 +224,7 @@ server <- function(input, output, session) {
         shinyjs::disable("rangeSporangiumDiameter")
       } else {
         shinyjs::enable("checkSporangiumShape")
-        shinyjs::enable("angeSporangiumDiameter")
+        shinyjs::enable("rangeSporangiumDiameter")
       }
       # Если выбрано отсутствие капиллиция, то инактивируются признаки капиллиция
       if (vCapillitum["absent"] == 0 & sum(vCapillitum) == 4) {
