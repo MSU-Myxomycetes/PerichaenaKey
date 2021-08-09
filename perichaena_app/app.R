@@ -1,5 +1,4 @@
 library(shiny)
-library(dplyr)
 
 perichaena_table <- read.csv("perichaena_tbl.csv")
 
@@ -203,27 +202,111 @@ server <- function(input, output, session) {
     vSporeAggregation <- inputMyx(c("free", "clusters"), input$checkSporeAggregation)
     vSporeSurface <- inputMyx(c("small_warted", "large_warted", "small_warted_with_large", "spiny", "reticulate"), input$checkSporeSurface)
 
-    filtered_perichaena_table <- perichaena_table %>%
-    filter(
-      ts_ses > vSporophoreType["sessile"] | ts_st > vSporophoreType["stalked"] | ts_pl > vSporophoreType["plasmodiocarps"],
-      sh_flat > vSporangiumShape["flat"] | sh_pil > vSporangiumShape["pillow"] | sh_sph > vSporangiumShape["spherical"] | sh_dp > vSporangiumShape["deep_bottom"],
-      ds_lmin <= input$rangeSporangiumDiameter[2] & ds_lmax >= input$rangeSporangiumDiameter[1],
-      ls_min <= input$rangeStalk[2] & ls_max >= input$rangeStalk[1],
-      ls_more > vStalkSporangiaRatio["more"] | ls_less > vStalkSporangiaRatio["less"],
-      cs_d > vStalkColour["dark"] | cs_l > vStalkColour["light"],
-      hy_in > vHypothallus["inconspicuous"] | hy_co > vHypothallus["conspicuous"],
-      hc_t > vHypothallusColour["transparent"] | hc_l > vHypothallusColour["light"] | hc_d > vHypothallusColour["dark"],
-      p_1 > vPeridiumLayers["single"] | p_2 > vPeridiumLayers["double"],
-      pt_thn > vPeridiumThickness["thick"] | pt_tck > vPeridiumThickness["thin"],
-      ps_gr > vPeridiumSurface["granular"] | ps_ab > vPeridiumSurface["absent"],
-      pd_cir > vPeridiumDehiscence["circle"] | pd_pl > vPeridiumDehiscence["plates"] | pd_ir > vPeridiumDehiscence["irregular"],
-      sd_lmin <= input$rangeSporeDiameter[2] & sd_lmax >= input$rangeSporeDiameter[1],
-      ss_cir > vSporeShape["spherical"] | ss_pol > vSporeShape["polygonal"],
-      sa_fr > vSporeAggregation["free"] | sa_cl > vSporeAggregation["clusters"],
-      so_smw > vSporeSurface["small_warted"] | so_lw > vSporeSurface["large_warted"] | so_slw > vSporeSurface["small_warted_with_large"] | so_sp > vSporeSurface["spiny"] | so_ret > vSporeSurface["reticulate"],
-      ca_w > vCapillitum["abundant"] | ca_sc > vCapillitum["scanty"] | ca_ab > vCapillitum["absent"],
-      cd_lmin <= input$rangeCapillitumDiameter[2] & cd_lmax >= input$rangeCapillitumDiameter[1],
-      co_sw > vCapillitumOrnamentation["warted"] | co_ls > vCapillitumOrnamentation["spiny"] | co_ret > vCapillitumOrnamentation["net"] | co_ir > vCapillitumOrnamentation["irregular"])
+    filtered_perichaena_table <- do.call(
+      rbind,
+      lapply(
+        1:nrow(perichaena_table),
+        function(i, df) {
+          perichaena_table <- df[i, ]
+          if (
+            all(
+              any(
+                perichaena_table$ts_ses > vSporophoreType["sessile"],
+                perichaena_table$ts_st > vSporophoreType["stalked"],
+                perichaena_table$ts_pl > vSporophoreType["plasmodiocarps"]
+              ),
+              any(
+                perichaena_table$sh_flat > vSporangiumShape["flat"],
+                perichaena_table$sh_pil > vSporangiumShape["pillow"],
+                perichaena_table$sh_sph > vSporangiumShape["spherical"],
+                perichaena_table$sh_dp > vSporangiumShape["deep_bottom"]
+              ),
+              all(
+                perichaena_table$ds_lmin <= input$rangeSporangiumDiameter[2],
+                perichaena_table$ds_lmax >= input$rangeSporangiumDiameter[1]
+              ),
+              all(
+                perichaena_table$ls_min <= input$rangeStalk[2],
+                perichaena_table$ls_max >= input$rangeStalk[1]
+              ),
+              any(
+                perichaena_table$ls_more > vStalkSporangiaRatio["more"],
+                perichaena_table$ls_less > vStalkSporangiaRatio["less"]
+              ),
+              any(
+                perichaena_table$cs_d > vStalkColour["dark"],
+                perichaena_table$cs_l > vStalkColour["light"]
+              ),
+              any(
+                perichaena_table$hy_in > vHypothallus["inconspicuous"],
+                perichaena_table$hy_co > vHypothallus["conspicuous"]
+              ),
+              any(
+                perichaena_table$hc_t > vHypothallusColour["transparent"],
+                perichaena_table$hc_l > vHypothallusColour["light"],
+                perichaena_table$hc_d > vHypothallusColour["dark"]
+              ),
+              any(
+                perichaena_table$p_1 > vPeridiumLayers["single"],
+                perichaena_table$p_2 > vPeridiumLayers["double"]
+              ),
+              any(
+                perichaena_table$pt_thn > vPeridiumThickness["thick"],
+                perichaena_table$pt_tck > vPeridiumThickness["thin"]
+              ),
+              any(
+                perichaena_table$ps_gr > vPeridiumSurface["granular"],
+                perichaena_table$ps_ab > vPeridiumSurface["absent"]
+              ),
+              any(
+                perichaena_table$pd_cir > vPeridiumDehiscence["circle"],
+                perichaena_table$pd_pl > vPeridiumDehiscence["plates"],
+                perichaena_table$pd_ir > vPeridiumDehiscence["irregular"]
+              ),
+              all(
+                perichaena_table$sd_lmin <= input$rangeSporeDiameter[2],
+                perichaena_table$sd_lmax >= input$rangeSporeDiameter[1]
+              ),
+              any(
+                perichaena_table$ss_cir > vSporeShape["spherical"],
+                perichaena_table$ss_pol > vSporeShape["polygonal"]
+              ),
+              any(
+                perichaena_table$sa_fr > vSporeAggregation["free"],
+                perichaena_table$sa_cl > vSporeAggregation["clusters"]
+              ),
+              any(
+                perichaena_table$so_smw > vSporeSurface["small_warted"],
+                perichaena_table$so_lw > vSporeSurface["large_warted"],
+                perichaena_table$so_slw > vSporeSurface["small_warted_with_large"],
+                perichaena_table$so_sp > vSporeSurface["spiny"],
+                perichaena_table$so_ret > vSporeSurface["reticulate"]
+              ),
+              any(
+                perichaena_table$ca_w > vCapillitum["abundant"],
+                perichaena_table$ca_sc > vCapillitum["scanty"],
+                perichaena_table$ca_ab > vCapillitum["absent"]
+              ),
+              all(
+                perichaena_table$cd_lmin <= input$rangeCapillitumDiameter[2],
+                perichaena_table$cd_lmax >= input$rangeCapillitumDiameter[1]
+              ),
+              any(
+                perichaena_table$co_sw > vCapillitumOrnamentation["warted"],
+                perichaena_table$co_ls > vCapillitumOrnamentation["spiny"],
+                perichaena_table$co_ret > vCapillitumOrnamentation["net"],
+                perichaena_table$co_ir > vCapillitumOrnamentation["irregular"]
+              )
+            )
+          ) {
+            df[i, ]
+          } else {
+            NULL
+          }
+        },
+        perichaena_table
+      )
+    )
 
     paste0("<i>", filtered_perichaena_table$sp, "</i>", collapse = "<br>")
 
