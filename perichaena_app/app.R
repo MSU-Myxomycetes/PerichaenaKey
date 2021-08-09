@@ -145,7 +145,7 @@ ui <- function(req) {
           step= 0.5),
         br(),
         checkboxGroupInput("checkSporeAggregation",
-          label = "Аггрегированность спор",
+          label = "Агрегированность спор",
           choices = c(
             "Свободные" = "free",
             "Собранные в группы" = "clusters")),
