@@ -1,5 +1,4 @@
 library(shiny)
-library(shinythemes)
 library(shinyjs)
 library(dplyr)
 
@@ -18,7 +17,6 @@ inputMyx <- function(vector, input, y = 2, facultative = FALSE) {
 
 ui <- function(req) {
   navbarPage("Perichaena",
-  theme = shinytheme("cerulean"),
   tabPanel("Ключ до видов",
     fluidPage(
 
