@@ -1,5 +1,4 @@
 library(shiny)
-library(shinyjs)
 library(dplyr)
 
 perichaena_table <- read.csv("perichaena_tbl.csv")
@@ -21,7 +20,6 @@ ui <- function(req) {
     fluidPage(
 
       column(3,
-        shinyjs::useShinyjs(),
         h3("Спорангий"),
         br(),
         checkboxGroupInput("checkSporophoreType",
@@ -204,35 +202,6 @@ server <- function(input, output, session) {
     vSporeShape <- inputMyx(c("spherical", "polygonal"), input$checkSporeShape)
     vSporeAggregation <- inputMyx(c("free", "clusters"), input$checkSporeAggregation)
     vSporeSurface <- inputMyx(c("small_warted", "large_warted", "small_warted_with_large", "spiny", "reticulate"), input$checkSporeSurface)
-
-    observe({
-      # Если не выбран спорангий на ножке, то инактивируются признаки ножки
-      if (vSporophoreType["stalked"] > 0) {
-        shinyjs::disable("rangeStalk")
-        shinyjs::disable("checkStalkSporangiaRatio")
-        shinyjs::disable("checkStalkColour")
-      } else {
-        shinyjs::enable("rangeStalk")
-        shinyjs::enable("checkStalkSporangiaRatio")
-        shinyjs::enable("checkStalkColour")
-      }
-      # Если выбран плазмодиокарп, то инактивируются форма спорангия
-      if (vSporophoreType["plasmodiocarps"] == 0 & sum(vSporophoreType) == 4) {
-        shinyjs::disable("checkSporangiumShape")
-        shinyjs::disable("rangeSporangiumDiameter")
-      } else {
-        shinyjs::enable("checkSporangiumShape")
-        shinyjs::enable("rangeSporangiumDiameter")
-      }
-      # Если выбрано отсутствие капиллиция, то инактивируются признаки капиллиция
-      if (vCapillitum["absent"] == 0 & sum(vCapillitum) == 4) {
-        shinyjs::disable("checkCapillitumOrnamentation")
-        shinyjs::disable("rangeCapillitumDiameter")
-      } else {
-        shinyjs::enable("checkCapillitumOrnamentation")
-        shinyjs::enable("rangeCapillitumDiameter")
-      }
-    })
 
     filtered_perichaena_table <- perichaena_table %>%
     filter(
